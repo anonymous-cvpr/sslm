@@ -41,8 +41,9 @@ import matplotlib.pyplot as plt
 # ## LOADING THE PRED FILES
 
 data_path = sys.argv[1]
+model_path = sys.argv[2]
 valid_mr_path = data_path + 'valid/'
-#predictions_file = sys.argv[2]
+
 print("Preparing the validation set labels...")
 abn_df = pd.read_csv(data_path+'/valid-abnormal.csv',names=['patient_id','abn'])
 acl_df = pd.read_csv(data_path+'/valid-acl.csv',names=['patient_id','acl'])
@@ -56,16 +57,14 @@ valid_df['filenames'] = valid_df.apply(lambda x : str(x.patient_id)+'.npy',axis=
 
 print(valid_df.head(120))
 
-axial_mode= 'axial'
-sagit_mode='sagittal'
-coron_mode='coronal'
+axial_plane= 'axial'
+sagit_plane='sagittal'
+coron_plane='coronal'
 
 NUM_FRAMES = 16
 batch_size = 1 #32
 NUM_CLASSES = 3
 NUM_PATCHES = 9
-
-model_path = '/mnt/disks/data/GCP/saved_models/'
 
 SEED = 16
 SAMPLES = 8
@@ -335,7 +334,7 @@ def rocket_model_part3(input_shape):
 # In[15]:
 
 print("Building Pretext model...")
-SEED = 16
+
 branch1 = rocket_model_branch((256,256,3),1)
 branch2 = rocket_model_branch((256,256,3),2)
 branch3 = rocket_model_branch((256,256,3),3)
