@@ -9,4 +9,4 @@
 * For downloading the pretext models, go to https://drive.google.com/drive/folders/16FhskmQS-DXsVLacrISmpKcM5U_qcMNe?usp=sharing
 * For downloading the downstream models, go to https://drive.google.com/drive/folders/1DW7_cju-ILrJUU_iL-z_gVPVYqwxakvY?usp=sharing
 * Download the models into respective folders.
-* To evaluate the models on the Validation set of the MRNet model, run `python3 evaluate.py /path/to/MRNet-v1.0/ /path/to/models/`
+* To evaluate the models on the Validation set, run `python3 evaluate.py /path/to/MRNet-v1.0/ /path/to/models/`
