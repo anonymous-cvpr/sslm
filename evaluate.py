@@ -43,7 +43,7 @@ import matplotlib.pyplot as plt
 data_path = sys.argv[1]
 model_path = sys.argv[2]
 valid_mr_path = data_path + 'valid/'
-
+#predictions_file = sys.argv[2]
 print("Preparing the validation set labels...")
 abn_df = pd.read_csv(data_path+'/valid-abnormal.csv',names=['patient_id','abn'])
 acl_df = pd.read_csv(data_path+'/valid-acl.csv',names=['patient_id','acl'])
@@ -57,9 +57,9 @@ valid_df['filenames'] = valid_df.apply(lambda x : str(x.patient_id)+'.npy',axis=
 
 print(valid_df.head(120))
 
-axial_plane= 'axial'
-sagit_plane='sagittal'
-coron_plane='coronal'
+axial_mode= 'axial'
+sagit_mode='sagittal'
+coron_mode='coronal'
 
 NUM_FRAMES = 16
 batch_size = 1 #32
@@ -334,7 +334,7 @@ def rocket_model_part3(input_shape):
 # In[15]:
 
 print("Building Pretext model...")
-
+SEED = 16
 branch1 = rocket_model_branch((256,256,3),1)
 branch2 = rocket_model_branch((256,256,3),2)
 branch3 = rocket_model_branch((256,256,3),3)
@@ -378,8 +378,13 @@ class DSDataGen(Sequence):
         image_volume = self.load_volume(idx)
         tot_frames = image_volume.shape[0]
         self.num_frames = np.min([tot_frames,self.MAX_FRAMES])
+        ftnum = tot_frames//5
+        fnum = self.num_frames//5
         
-        frame_idxs = random.sample(list(range(self.num_frames)),16)
+        frame_idxs = random.sample(list(range(ftnum)),fnum)+\
+                     random.sample(list(range(ftnum,tot_frames-ftnum)),self.num_frames-2*fnum)+\
+                     random.sample(list(range(tot_frames-ftnum,tot_frames)),fnum)
+        #frame_idxs = random.sample(list(range(self.num_frames)),16)
         #ONLY FOR STANFORD MODEL
         frame_idxs = np.array(sorted(frame_idxs))
 
@@ -474,7 +479,9 @@ def predictions(valid_df,vdg):
 	        jpp_pred = np.array([]).reshape((0,3))
 	
 	return pred
-# In[158]:
+
+# PREDICTIONS AND ENSEMBLING
+class_labels = ['abnormality','acl tear','meniscus tear']
 
 #--------------------SAGITTAL-------------
 print("Initializing Sagittal Pretext Model...")
@@ -485,6 +492,8 @@ dsmodel = tf.keras.models.load_model(model_path+'downstream/sagittal_downstream_
 print("Generating Predictions on Sagittal Plane of Validation Set...")
 sag_pred = predictions(valid_df,vdg)
 
+sag_perf_df = get_performance_metrics(valid_df[['abn','acl','men']].values,sag_pred,class_labels)
+
 #--------------------CORONAL-----------------
 print("Initializing Coronal Pretext Model...")
 initialize("pretext/coronal_pretext_model.h5")
@@ -492,6 +501,8 @@ vdg = DSDataGen(valid_df, preprocess_input = ppi_irv2, plane = 'coronal',batch_s
 dsmodel = tf.keras.models.load_model(model_path+'downstream/coronal_downstream_model.h5',compile=False)
 print("Generating Predictions on Coronal plane of Validation Set...")
 cor_pred = predictions(valid_df,vdg)
+
+cor_perf_df = get_performance_metrics(valid_df[['abn','acl','men']].values,cor_pred,class_labels)
 
 #--------------------AXIAL-----------------
 print("Initializing Axial Pretext Model...")
@@ -501,10 +512,13 @@ dsmodel = tf.keras.models.load_model(model_path+'downstream/axial_downstream_mod
 print("Generating Predictions on Axial plane of Validation Set...")
 axi_pred = predictions(valid_df,vdg)
 
+axi_perf_df = get_perfromance_metrics(valid_df[['abn','acl','men']].values,axi-pred,class_labels)
+
 #----------------ENSEMBLE--------------
 
 #Validation accuracies obtained on the MRNet dataset
 
+'''# ACCURACIES GIVEN IN THE PAPER
 sag_abn_acc = 0.883
 sag_acl_acc = 0.750
 sag_men_acc = 0.642
@@ -515,7 +529,11 @@ cor_men_acc = 0.692
 
 axi_abn_acc = 0.850
 axi_acl_acc = 0.825
-axi_men_acc = 0.650
+axi_men_acc = 0.650'''
+
+sag_abn_acc, sag_acl_acc, sag_men_acc = sag_perf_df[['Accuracy']].values
+cor_abn_acc, cor_acl_acc, cor_men_acc = cor_perf_df[['Accuracy']].values
+axi_abn_acc, axi_acl_acc, axi-men_acc = axi_perf_df[['Accuracy']].values
 
 print("Generating weights for Ensemble model...")
 
