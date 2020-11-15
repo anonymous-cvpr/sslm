@@ -6,23 +6,15 @@ import pandas as pd
 import shutil, time, os, random, copy, pickle, sys
 from itertools import permutations 
 from functools import reduce
-#import seaborn as sns
 import imageio
 from skimage.transform import rotate, AffineTransform, warp, resize
-#from google.colab.patches import cv2_imshow
-#from IPython.display import clear_output, Image, SVG
 import h5py
 
-#%tensorflow_version 2.x
-#get_ipython().run_line_magic('load_ext', 'tensorboard')
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
-
 from tensorflow.keras.layers import Input, Conv2D, MaxPool2D, GlobalAveragePooling2D, AveragePooling2D, BatchNormalization, Reshape
-
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Activation, Concatenate, Lambda, LeakyReLU, ConvLSTM2D
-
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from tensorflow.keras.optimizers import Adam, SGD
@@ -62,13 +54,13 @@ sagit_mode='sagittal'
 coron_mode='coronal'
 
 NUM_FRAMES = 16
-batch_size = 1 #32
+batch_size = 1
 NUM_CLASSES = 3
 NUM_PATCHES = 9
 
 SEED = 16
 SAMPLES = 8
-NUM_SAMPLES = 120 #num_samples
+NUM_SAMPLES = 120 
 
 np.random.seed(16)
 
@@ -574,10 +566,31 @@ preds = np.append(np.append(abn_pred,acl_pred,axis=1),men_pred,axis=1)
 #preds_df.to_csv('predictions.csv',columns=None,header=None,index=False,index_label=None)
 
 #METRICS
+print("\nPerformance Metrics on Sagittal plane :\n")
+print(sag_perf_df)
+
+print("\nPerformance Metrics on Coronal plane :\n")
+print(cor_perf_df)
+
+print("\nPerformance Metrics on Axial plane :\n")
+print(axi_perf_df)
+
+print("\nEnsemble Results...\n")
+
 perf_metrics = get_performance_metrics(valid_df[['abn','acl','men']].values,preds,class_labels)
 
 print(perf_metrics)
 
 conf_int_df = get_confidence_intervals(valid_df[['abn','acl','men']].values,preds,class_labels)
 
-print(conf_int_df)
+print("\nAccuracy :\n")
+print(conf_int_df['Accuracy'])
+
+print("\nSensitivity :\n")
+print(conf_int_df['Sensitivity'])
+
+print("\nSpecificity :\n")
+print(conf_int_df['Specificity'])
+
+print("\nAUC :\n")
+print(conf_int_df['AUC'])
