@@ -556,10 +556,10 @@ preds = np.append(np.append(abn_pred,acl_pred,axis=1),men_pred,axis=1)
 #preds_df.to_csv('predictions.csv',columns=None,header=None,index=False,index_label=None)
 
 #METRICS
-perf_metrics = get_performance_metrics(valid_labels[['abn','acl','men']].values,preds,class_labels)
+perf_metrics = get_performance_metrics(valid_df[['abn','acl','men']].values,preds,class_labels)
 
 print(perf_metrics)
 
-conf_int_df = get_confidence_intervals(valid_labels[['abn','acl','men']].values,preds,class_labels)
+conf_int_df = get_confidence_intervals(valid_df[['abn','acl','men']].values,preds,class_labels)
 
 print(conf_int_df)
